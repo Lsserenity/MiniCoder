@@ -165,3 +165,64 @@ def read_file(
         "content": "\n".join(numbered_lines),
         "total_lines": len(lines),
     }
+
+# 写文件
+def write_file(
+    workspace: Path,
+    path: str,
+    content: str,
+    overwrite: bool = False,
+) -> dict:
+    try:
+        target = resolve_workspace_path(
+            workspace,
+            path,
+        )
+    except PermissionError as exc:
+        return {
+            "success": False,
+            "error": str(exc),
+        }
+
+    existed_before = target.exists()
+
+    if existed_before and not overwrite:
+        return {
+            "success": False,
+            "error": (
+                f"File already exists: {path}. "
+                "Set overwrite=true to replace it."
+            ),
+        }
+
+    if existed_before and not target.is_file():
+        return {
+            "success": False,
+            "error": f"Path is not a file: {path}",
+        }
+
+    try:
+        target.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+
+        target.write_text(
+            content,
+            encoding="utf-8",
+        )
+
+    except OSError as exc:
+        return {
+            "success": False,
+            "error": str(exc),
+        }
+
+    return {
+        "success": True,
+        "path": path,
+        "bytes_written": len(
+            content.encode("utf-8")
+        ),
+        "overwritten": existed_before,
+    }

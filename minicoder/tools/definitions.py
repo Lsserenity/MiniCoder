@@ -59,8 +59,52 @@ READ_FILE_TOOL = {
     },
 }
 
+WRITE_FILE_TOOL = {
+    "type": "function",
+    "function": {
+        "name": "write_file",
+        "description": (
+            "Create a new UTF-8 text file inside "
+            "the current project workspace. "
+            "Existing files are not overwritten unless "
+            "overwrite is explicitly set to true."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "path": {
+                    "type": "string",
+                    "description": (
+                        "File path relative to "
+                        "the workspace root."
+                    ),
+                },
+                "content": {
+                    "type": "string",
+                    "description": (
+                        "Complete text content "
+                        "to write into the file."
+                    ),
+                },
+                "overwrite": {
+                    "type": "boolean",
+                    "description": (
+                        "Whether an existing file may "
+                        "be overwritten. Defaults to false."
+                    ),
+                },
+            },
+            "required": [
+                "path",
+                "content",
+            ],
+            "additionalProperties": False,
+        },
+    },
+}
+
 TOOLS = [
     LIST_FILES_TOOL,
     READ_FILE_TOOL,
-
+    WRITE_FILE_TOOL,
 ]

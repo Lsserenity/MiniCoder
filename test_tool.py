@@ -1,14 +1,18 @@
 from pathlib import Path
 
-from minicoder.tools.filesystem import list_files, read_file
+from minicoder.tools.filesystem import write_file
 
 
 def main():
-    workspace = Path("demo_project").resolve()
+    workspace = Path(
+        "demo_project"
+    ).resolve()
 
-    result = read_file(
+    result = write_file(
         workspace=workspace,
-        path="hello.txt",
+        path="../../danger.txt",
+        content="MiniCoder works!",
+        overwrite=True,
     )
 
     print(result)
