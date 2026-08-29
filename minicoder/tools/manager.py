@@ -18,7 +18,7 @@ class ToolManager:
     def __init__(self, workspace: Path) -> None:
         self.workspace = workspace.resolve()
 
-    # 接收llm的tool_call对象，解析
+    # 接收llm的tool_call对象，返回执行结果，字典
     def execute(self, tool_call) -> dict:
         """
         Execute one tool call returned by the LLM.
