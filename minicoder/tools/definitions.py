@@ -146,9 +146,52 @@ EDIT_FILE_TOOL = {
     },
 }
 
+SEARCH_TEXT_TOOL = {
+    "type": "function",
+    "function": {
+        "name": "search_text",
+        "description": (
+            "Search recursively for exact text inside UTF-8 files "
+            "within the current project workspace. "
+            "Returns matching file paths, line numbers, and lines."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "query": {
+                    "type": "string",
+                    "description": (
+                        "Exact text to search for."
+                    ),
+                },
+                "path": {
+                    "type": "string",
+                    "description": (
+                        "File or directory path relative to "
+                        "the workspace root. "
+                        "Defaults to '.'."
+                    ),
+                },
+                "max_results": {
+                    "type": "integer",
+                    "description": (
+                        "Maximum number of matches to return. "
+                        "Defaults to 50."
+                    ),
+                },
+            },
+            "required": [
+                "query",
+            ],
+            "additionalProperties": False,
+        },
+    },
+}
+
 TOOLS = [
     LIST_FILES_TOOL,
     READ_FILE_TOOL,
     WRITE_FILE_TOOL,
     EDIT_FILE_TOOL,
+    SEARCH_TEXT_TOOL,
 ]

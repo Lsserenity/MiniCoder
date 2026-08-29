@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from minicoder.tools.filesystem import edit_file
+from minicoder.tools.search import search_text
 
 
 def main():
@@ -8,11 +8,10 @@ def main():
         "demo_project"
     ).resolve()
 
-    result = edit_file(
+    result = search_text(
         workspace=workspace,
-        path="../../notes.txt",
-        old_text='MiniCoder',
-        new_text='return "hello"',
+        query="",
+        path=".",
     )
 
     print(result)

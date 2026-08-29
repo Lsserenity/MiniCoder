@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 
 from minicoder.tools.filesystem import list_files, read_file, write_file, edit_file
+from minicoder.tools.search import search_text
 
 # 映射的是函数本身
 TOOL_REGISTRY = {
@@ -9,6 +10,7 @@ TOOL_REGISTRY = {
     "read_file": read_file,
     "write_file": write_file,
     "edit_file": edit_file,
+    "search_text": search_text,
 }
 
 

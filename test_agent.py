@@ -9,8 +9,8 @@ def main():
     )
 
     answer = agent.run(
-        "Inspect hello.py and change the hello() function "
-        'so that it returns "Hello from MiniCoder!" instead.'
+        "Find where the hello function is defined, "
+        "read the relevant file, and explain what it does."
     )
 
     print("===== AGENT ANSWER =====")
