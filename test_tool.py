@@ -1,14 +1,14 @@
 from pathlib import Path
 
-from minicoder.tools.filesystem import list_files
+from minicoder.tools.filesystem import list_files, read_file
 
 
 def main():
     workspace = Path("demo_project").resolve()
 
-    result = list_files(
+    result = read_file(
         workspace=workspace,
-        path=".",
+        path="hello.txt",
     )
 
     print(result)

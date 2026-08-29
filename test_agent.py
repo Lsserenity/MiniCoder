@@ -9,7 +9,8 @@ def main():
     )
 
     answer = agent.run(
-        "Tell me what files exist in this project."
+        "Please inspect this project "
+        "and explain what hello.py does."
     )
 
     print("===== AGENT ANSWER =====")

@@ -1,11 +1,12 @@
 import json
 from pathlib import Path
 
-from minicoder.tools.filesystem import list_files
+from minicoder.tools.filesystem import list_files, read_file
 
 # 映射的是函数本身
 TOOL_REGISTRY = {
     "list_files": list_files,
+    "read_file": read_file,
 }
 
 

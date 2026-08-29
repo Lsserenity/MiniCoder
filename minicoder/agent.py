@@ -44,6 +44,10 @@ class Agent:
         )
 
         for step in range(self.max_steps):
+            # 调试信息
+            print(
+                f"[Agent] step {step + 1}",
+            )
             # llm的回答
             message = self.llm.chat(
                 messages=self.messages,
@@ -54,11 +58,32 @@ class Agent:
 
             # 如果没有工具调用，说明当前对话可以结束，返回模型回答的内容
             if not message.tool_calls:
+                # 调试
+                print(
+                    "[Agent] No tool call. "
+                    "Returning final answer."
+                )
                 return message.content or ""
             # 否则依次执行工具调用
             for tool_call in message.tool_calls:
+                # 调试信息
+                print(
+                    f"[Agent] Calling tool: "
+                    f"{tool_call.function.name}"
+                )
+
+                print(
+                    f"[Agent] Arguments: "
+                    f"{tool_call.function.arguments}"
+                )
+
                 result = self.tool_manager.execute(
                     tool_call
+                )
+
+                # 调试
+                print(
+                    f"[Agent] Tool result: {result}"
                 )
 
                 tool_message = {
