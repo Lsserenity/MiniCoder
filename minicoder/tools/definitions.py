@@ -103,8 +103,52 @@ WRITE_FILE_TOOL = {
     },
 }
 
+EDIT_FILE_TOOL = {
+    "type": "function",
+    "function": {
+        "name": "edit_file",
+        "description": (
+            "Modify an existing UTF-8 text file by replacing "
+            "exactly one occurrence of old_text with new_text. "
+            "The old_text must match exactly one location."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "path": {
+                    "type": "string",
+                    "description": (
+                        "File path relative to the workspace root."
+                    ),
+                },
+                "old_text": {
+                    "type": "string",
+                    "description": (
+                        "Exact existing text to replace. "
+                        "It must occur exactly once in the file."
+                    ),
+                },
+                "new_text": {
+                    "type": "string",
+                    "description": (
+                        "Replacement text. "
+                        "Use an empty string to delete old_text."
+                    ),
+                },
+            },
+            "required": [
+                "path",
+                "old_text",
+                "new_text",
+            ],
+            "additionalProperties": False,
+        },
+    },
+}
+
 TOOLS = [
     LIST_FILES_TOOL,
     READ_FILE_TOOL,
     WRITE_FILE_TOOL,
+    EDIT_FILE_TOOL,
 ]

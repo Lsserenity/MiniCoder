@@ -1,3 +1,5 @@
+import difflib
+
 from pathlib import Path
 
 # 解析工作目录下的文件路径，保证不会越界
@@ -225,4 +227,111 @@ def write_file(
             content.encode("utf-8")
         ),
         "overwritten": existed_before,
+    }
+
+# 编辑文件
+def edit_file(
+    workspace: Path,
+    path: str,
+    old_text: str,
+    new_text: str,
+) -> dict:
+    """
+    在一个已经存在的utf-8编码的文件中替换只出现一次的old_text为new_text
+    """
+
+    try:
+        target = resolve_workspace_path(
+            workspace,
+            path,
+        )
+    except PermissionError as exc:
+        return {
+            "success": False,
+            "error": str(exc),
+        }
+
+    if not target.exists():
+        return {
+            "success": False,
+            "error": f"File does not exist: {path}",
+        }
+
+    if not target.is_file():
+        return {
+            "success": False,
+            "error": f"Path is not a file: {path}",
+        }
+
+    try:
+        original_text = target.read_text(
+            encoding="utf-8"
+        )
+    except UnicodeDecodeError:
+        return {
+            "success": False,
+            "error": (
+                f"File is not valid UTF-8 text: {path}"
+            ),
+        }
+    except OSError as exc:
+        return {
+            "success": False,
+            "error": str(exc),
+        }
+
+    match_count = original_text.count(
+        old_text
+    )
+
+    if match_count == 0:
+        return {
+            "success": False,
+            "error": (
+                "old_text was not found in "
+                f"the file: {path}"
+            ),
+        }
+
+    if match_count > 1:
+        return {
+            "success": False,
+            "error": (
+                f"old_text matched multiple locations in the file: {path}. "
+                "Please provide a more specific match."
+            ),
+        }
+
+    updated_text = original_text.replace(
+        old_text,
+        new_text,
+        1,
+    )
+
+    diff_lines = difflib.unified_diff(
+        original_text.splitlines(),
+        updated_text.splitlines(),
+        fromfile=f"{path} (before)",
+        tofile=f"{path} (after)",
+        lineterm="",
+    )
+
+    diff = "\n".join(diff_lines)
+
+    try:
+        target.write_text(
+            updated_text,
+            encoding="utf-8",
+        )
+    except OSError as exc:
+        return {
+            "success": False,
+            "error": str(exc),
+        }
+
+    return {
+        "success": True,
+        "path": path,
+        "replacements": 1,
+        "diff": diff,
     }

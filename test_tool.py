@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from minicoder.tools.filesystem import write_file
+from minicoder.tools.filesystem import edit_file
 
 
 def main():
@@ -8,11 +8,11 @@ def main():
         "demo_project"
     ).resolve()
 
-    result = write_file(
+    result = edit_file(
         workspace=workspace,
-        path="../../danger.txt",
-        content="MiniCoder works!",
-        overwrite=True,
+        path="../../notes.txt",
+        old_text='MiniCoder',
+        new_text='return "hello"',
     )
 
     print(result)
