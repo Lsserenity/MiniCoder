@@ -49,10 +49,18 @@ class Agent:
                 f"[Agent] step {step + 1}",
             )
             # llm的回答
-            message = self.llm.chat(
-                messages=self.messages,
-                tools=TOOLS,
-            )
+            try:
+                message = self.llm.chat(
+                    messages=self.messages,
+                    tools=TOOLS,
+                )
+            except Exception as exc:
+                return (
+                    "Agent stopped because the LLM request failed. "
+                    "Changes already made to the workspace were not "
+                    "automatically rolled back. "
+                    f"Error: {exc}"
+                )
 
             self.messages.append(message)
 
