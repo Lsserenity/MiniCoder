@@ -1,6 +1,51 @@
 from pathlib import Path
 
-from minicoder.tools.filesystem import read_file
+from minicoder.tools.manager import ToolManager
+
+
+class MockFunction:
+    def __init__(
+        self,
+        name: str,
+        arguments: str,
+    ):
+        self.name = name
+        self.arguments = arguments
+
+
+class MockToolCall:
+    def __init__(
+        self,
+        name: str,
+        arguments: str,
+    ):
+        self.function = MockFunction(
+            name=name,
+            arguments=arguments,
+        )
+
+
+def run_test(
+    manager: ToolManager,
+    name: str,
+    arguments: str,
+):
+    print("=" * 60)
+    print("tool:", name)
+    print("arguments:", arguments)
+
+    tool_call = MockToolCall(
+        name=name,
+        arguments=arguments,
+    )
+
+    result = manager.execute(
+        tool_call
+    )
+
+    print("result:")
+    print(result)
+    print()
 
 
 def main():
@@ -8,41 +53,37 @@ def main():
         "demo_project"
     ).resolve()
 
-    large_file = (
-        workspace / "large.txt"
+    manager = ToolManager(
+        workspace=workspace
     )
 
-    content = "\n".join(
-        f"line {i}"
-        for i in range(1, 10001)
+    # 1. 普通命令：应该允许并真正执行
+    run_test(
+        manager,
+        "run_command",
+        '{"command": "python hello.py"}',
     )
 
-    large_file.write_text(
-        content,
-        encoding="utf-8",
+    # 2. 明显危险命令：应该被 PolicyEngine 拒绝
+    run_test(
+        manager,
+        "run_command",
+        '{"command": "shutdown /s"}',
     )
 
-    result = read_file(
-        workspace=workspace,
-        path="large.txt",
-        start_line = 10000,
+    # 3. 修改开发环境的命令：
+    # 当前应该要求 confirmation，并且不能真正执行
+    run_test(
+        manager,
+        "run_command",
+        '{"command": "pip install flask"}',
     )
 
-    print(
-        "start_line:",
-        result["start_line"],
-    )
-    print(
-        "end_line:",
-        result["end_line"],
-    )
-    print(
-        "total_lines:",
-        result["total_lines"],
-    )
-    print(
-        "truncated:",
-        result["truncated"],
+    # 4. 普通读文件工具：应该正常执行
+    run_test(
+        manager,
+        "read_file",
+        '{"path": "hello.py"}',
     )
 
 

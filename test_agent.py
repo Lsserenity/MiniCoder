@@ -9,8 +9,7 @@ def main():
     )
 
     answer = agent.run(
-        "Run the test suite, diagnose any failures, fix the underlying bug, "
-        "and rerun the tests until they pass."
+        "Run hello.py and tell me what it prints."
     )
 
     print("===== AGENT ANSWER =====")

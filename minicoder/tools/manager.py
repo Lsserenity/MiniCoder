@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 
+from minicoder.policy.engine import PolicyAction, PolicyEngine
 from minicoder.tools.filesystem import list_files, read_file, write_file, edit_file
 from minicoder.tools.search import search_text
 from minicoder.tools.shell import run_command
@@ -18,12 +19,16 @@ TOOL_REGISTRY = {
 
 class ToolManager:
     """
-    Manage and execute local tools requested by the LLM.
+    规划并执行工具调用的管理器。它接收LLM的tool_call对象，执行对应的工具函数，并返回结果。
     """
 
     # 需要传入workspace作为参数
-    def __init__(self, workspace: Path) -> None:
+    def __init__(
+        self,
+        workspace: Path,
+    ) -> None:
         self.workspace = workspace.resolve()
+        self.policy = PolicyEngine()
 
     # 接收llm的tool_call对象，返回执行结果，字典
     def execute(self, tool_call) -> dict:
@@ -53,6 +58,43 @@ class ToolManager:
 
         tool = TOOL_REGISTRY[tool_name]
 
+        # 检查工具调用是否合法
+        decision = (
+            self.policy.check_tool_call(
+                tool_name=tool_name,
+                arguments=arguments,
+            )
+        )
+
+        if decision.action == PolicyAction.DENY:
+            return {
+                "success": False,
+                "error": (
+                    "Tool call denied by policy: "
+                    f"{decision.reason}"
+                ),
+                "policy_action": (
+                    decision.action.value
+                ),
+            }
+
+        # 目前保留REQUIRE_CONFIRMATION，等待后续交互逻辑完善
+        if (
+            decision.action
+            == PolicyAction.REQUIRE_CONFIRMATION
+        ):
+            return {
+                "success": False,
+                "error": (
+                    "Tool call requires user "
+                    "confirmation before execution: "
+                    f"{decision.reason}"
+                ),
+                "policy_action": (
+                    decision.action.value
+                ),
+            }
+        
         try:
             result = tool(
                 workspace=self.workspace,
