@@ -10,6 +10,24 @@ BLOCKED_COMMANDS = [
     "reboot",
 ]
 
+MAX_OUTPUT_CHARS = 20_000
+
+def truncate_output(
+    text: str,
+    max_chars: int = MAX_OUTPUT_CHARS,
+) -> tuple[str, bool]:
+    if len(text) <= max_chars:
+        return text, False
+
+    half = max_chars // 2
+
+    truncated = (
+        text[:half]
+        + "\n...[output truncated]...\n"
+        + text[-half:]
+    )
+
+    return truncated, True
 
 def run_command(
     workspace: Path,
@@ -49,25 +67,61 @@ def run_command(
             timeout=timeout,
         )
     except subprocess.TimeoutExpired as exc:
+        raw_stdout = exc.stdout or ""
+        raw_stderr = exc.stderr or ""
+
+        if isinstance(raw_stdout, bytes):
+            raw_stdout = raw_stdout.decode(
+                "utf-8",
+                errors="replace",
+            )
+
+        if isinstance(raw_stderr, bytes):
+            raw_stderr = raw_stderr.decode(
+                "utf-8",
+                errors="replace",
+            )
+
+        stdout, stdout_truncated = truncate_output(
+            raw_stdout
+        )
+
+        stderr, stderr_truncated = truncate_output(
+            raw_stderr
+        )
+
         return {
             "success": False,
             "command": command,
             "exit_code": None,
-            "stdout": exc.stdout or "",
-            "stderr": exc.stderr or "",
+            "stdout": stdout,
+            "stderr": stderr,
+            "stdout_truncated": stdout_truncated,
+            "stderr_truncated": stderr_truncated,
             "timed_out": True,
         }
+
     except OSError as exc:
         return {
             "success": False,
             "error": str(exc),
         }
 
+    stdout, stdout_truncated = truncate_output(
+        completed.stdout
+    )
+
+    stderr, stderr_truncated = truncate_output(
+        completed.stderr
+    )
+
     return {
         "success": completed.returncode == 0,
         "command": command,
         "exit_code": completed.returncode,
-        "stdout": completed.stdout,
-        "stderr": completed.stderr,
+        "stdout": stdout,
+        "stderr": stderr,
+        "stdout_truncated": stdout_truncated,
+        "stderr_truncated": stderr_truncated,
         "timed_out": False,
     }
