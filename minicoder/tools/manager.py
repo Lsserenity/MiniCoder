@@ -3,6 +3,7 @@ from pathlib import Path
 
 from minicoder.tools.filesystem import list_files, read_file, write_file, edit_file
 from minicoder.tools.search import search_text
+from minicoder.tools.shell import run_command
 
 # 映射的是函数本身
 TOOL_REGISTRY = {
@@ -11,6 +12,7 @@ TOOL_REGISTRY = {
     "write_file": write_file,
     "edit_file": edit_file,
     "search_text": search_text,
+    "run_command": run_command,
 }
 
 

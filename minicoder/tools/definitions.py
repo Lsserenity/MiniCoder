@@ -188,10 +188,45 @@ SEARCH_TEXT_TOOL = {
     },
 }
 
+RUN_COMMAND_TOOL = {
+    "type": "function",
+    "function": {
+        "name": "run_command",
+        "description": (
+            "Run a shell command inside the current project workspace. "
+            "Use this to execute programs, run tests, or inspect command output."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "command": {
+                    "type": "string",
+                    "description": (
+                        "Shell command to execute inside "
+                        "the workspace."
+                    ),
+                },
+                "timeout": {
+                    "type": "integer",
+                    "description": (
+                        "Maximum execution time in seconds. "
+                        "Defaults to 30."
+                    ),
+                },
+            },
+            "required": [
+                "command",
+            ],
+            "additionalProperties": False,
+        },
+    },
+}
+
 TOOLS = [
     LIST_FILES_TOOL,
     READ_FILE_TOOL,
     WRITE_FILE_TOOL,
     EDIT_FILE_TOOL,
     SEARCH_TEXT_TOOL,
+    RUN_COMMAND_TOOL,
 ]

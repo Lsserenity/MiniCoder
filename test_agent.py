@@ -9,8 +9,7 @@ def main():
     )
 
     answer = agent.run(
-        "Find where the hello function is defined, "
-        "read the relevant file, and explain what it does."
+        "Run hello.py. If it fails, inspect the error and fix the problem."
     )
 
     print("===== AGENT ANSWER =====")

@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from minicoder.tools.search import search_text
+from minicoder.tools.shell import run_command
 
 
 def main():
@@ -8,10 +8,10 @@ def main():
         "demo_project"
     ).resolve()
 
-    result = search_text(
+    result = run_command(
         workspace=workspace,
-        query="",
-        path=".",
+        command='python -c "import time; time.sleep(5)"',
+        timeout=1
     )
 
     print(result)
