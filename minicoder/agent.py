@@ -4,6 +4,7 @@ from pathlib import Path
 from minicoder.llm.openai_client import LLMClient
 from minicoder.tools.definitions import TOOLS
 from minicoder.tools.manager import ToolManager
+from minicoder.planning.plan import PlanState
 
 
 SYSTEM_PROMPT = """
@@ -21,6 +22,14 @@ Follow these rules:
    and relevant verification has succeeded when verification is available.
 7. Do not install packages or modify the system environment unless the user
    explicitly asks you to do so.
+8. For multi-step coding tasks, create and maintain an explicit plan using
+   update_plan. Keep exactly one step in_progress when work is active, mark
+   finished steps completed, and keep remaining steps pending.
+9. Avoid repeating the same tool call with the same arguments when the previous
+   result is still valid.
+   
+Do not overstate verification results.
+Only claim what the observed tests and tool results support.
 """
 
 
@@ -33,8 +42,10 @@ class Agent:
         
         self.workspace = workspace.resolve()
         self.llm = LLMClient()
+        self.plan_state = PlanState()
         self.tool_manager = ToolManager(
-            workspace=self.workspace
+            workspace=self.workspace,
+            plan_state=self.plan_state,
         )
         self.max_steps = max_steps
         self.messages = [

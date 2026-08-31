@@ -222,6 +222,58 @@ RUN_COMMAND_TOOL = {
     },
 }
 
+UPDATE_PLAN_TOOL = {
+    "type": "function",
+    "function": {
+        "name": "update_plan",
+        "description": (
+            "Create or update the explicit execution plan "
+            "for the current task. Use this for multi-step "
+            "coding tasks and keep step statuses current."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "steps": {
+                    "type": "array",
+                    "description": (
+                        "The current ordered task plan."
+                    ),
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "description": {
+                                "type": "string",
+                                "description": (
+                                    "A concise description "
+                                    "of the plan step."
+                                ),
+                            },
+                            "status": {
+                                "type": "string",
+                                "enum": [
+                                    "pending",
+                                    "in_progress",
+                                    "completed",
+                                ],
+                            },
+                        },
+                        "required": [
+                            "description",
+                            "status",
+                        ],
+                        "additionalProperties": False,
+                    },
+                },
+            },
+            "required": [
+                "steps",
+            ],
+            "additionalProperties": False,
+        },
+    },
+}
+
 TOOLS = [
     LIST_FILES_TOOL,
     READ_FILE_TOOL,
@@ -229,4 +281,5 @@ TOOLS = [
     EDIT_FILE_TOOL,
     SEARCH_TEXT_TOOL,
     RUN_COMMAND_TOOL,
+    UPDATE_PLAN_TOOL,
 ]

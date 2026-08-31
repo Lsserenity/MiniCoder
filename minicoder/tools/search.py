@@ -11,6 +11,7 @@ DEFAULT_IGNORED_DIRS = {
     "node_modules",
     "venv",
     ".venv",
+    ".pytest_cache",
 }
 
 
