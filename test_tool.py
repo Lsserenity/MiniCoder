@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from minicoder.tools.shell import run_command
+from minicoder.tools.filesystem import read_file
 
 
 def main():
@@ -8,35 +8,41 @@ def main():
         "demo_project"
     ).resolve()
 
-    result = run_command(
+    large_file = (
+        workspace / "large.txt"
+    )
+
+    content = "\n".join(
+        f"line {i}"
+        for i in range(1, 10001)
+    )
+
+    large_file.write_text(
+        content,
+        encoding="utf-8",
+    )
+
+    result = read_file(
         workspace=workspace,
-        command='python -c "import time; time.sleep(5)"',
-        timeout=1
+        path="large.txt",
+        start_line = 10000,
     )
 
     print(
-        "success:",
-        result["success"],
+        "start_line:",
+        result["start_line"],
     )
-
     print(
-        "stderr length:",
-        len(result["stderr"]),
+        "end_line:",
+        result["end_line"],
     )
-
     print(
-        "stderr truncated:",
-        result["stderr_truncated"],
+        "total_lines:",
+        result["total_lines"],
     )
-
     print(
-        "contains marker:",
-        "[output truncated]" in result["stderr"],
-    )
-
-    print(
-        "timed out:",
-        result["timed_out"],
+        "truncated:",
+        result["truncated"],
     )
 
 

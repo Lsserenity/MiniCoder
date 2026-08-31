@@ -2,6 +2,8 @@ import difflib
 
 from pathlib import Path
 
+MAX_READ_LINES = 1000
+
 # 解析工作目录下的文件路径，保证不会越界
 def resolve_workspace_path(
     workspace: Path,
@@ -76,9 +78,12 @@ def read_file(
     end_line: int | None = None,
 ) -> dict:
     """
-    读取工作目录下的文件内容
-    可选返回指定行的内容
+    读取工作目录下的 UTF-8 文本文件。
+
+    默认最多返回 MAX_READ_LINES 行。
+    可以通过 start_line 和 end_line 指定读取范围。
     """
+
     try:
         target = resolve_workspace_path(
             workspace,
@@ -108,7 +113,10 @@ def read_file(
             "error": "start_line must be at least 1.",
         }
 
-    if end_line is not None and end_line < start_line:
+    if (
+        end_line is not None
+        and end_line < start_line
+    ):
         return {
             "success": False,
             "error": (
@@ -135,37 +143,74 @@ def read_file(
         }
 
     lines = text.splitlines()
+    total_lines = len(lines)
 
-    start_index = start_line - 1
+    if total_lines == 0:
+        return {
+            "success": True,
+            "path": path,
+            "start_line": 1,
+            "end_line": 0,
+            "content": "",
+            "total_lines": 0,
+            "truncated": False,
+        }
+
+    if start_line > total_lines:
+        return {
+            "success": False,
+            "error": (
+                f"start_line {start_line} exceeds "
+                f"file length {total_lines}."
+            ),
+        }
+
+    max_end_line = (
+        start_line + MAX_READ_LINES - 1
+    )
 
     if end_line is None:
-        selected_lines = lines[start_index:]
+        actual_end_line = min(
+            max_end_line,
+            total_lines,
+        )
     else:
-        selected_lines = lines[
-            start_index:end_line
-        ]
+        actual_end_line = min(
+            end_line,
+            max_end_line,
+            total_lines,
+        )
+
+    selected_lines = lines[
+        start_line - 1:actual_end_line
+    ]
 
     numbered_lines = []
 
-    for index, line in enumerate(
+    for line_number, line in enumerate(
         selected_lines,
         start=start_line,
     ):
         numbered_lines.append(
-            f"{index}: {line}"
+            f"{line_number}: {line}"
         )
+
+    content = "\n".join(
+        numbered_lines
+    )
+
+    truncated = (
+        actual_end_line < total_lines
+    )
 
     return {
         "success": True,
         "path": path,
         "start_line": start_line,
-        "end_line": (
-            start_line + len(selected_lines) - 1
-            if selected_lines
-            else start_line
-        ),
-        "content": "\n".join(numbered_lines),
-        "total_lines": len(lines),
+        "end_line": actual_end_line,
+        "content": content,
+        "total_lines": total_lines,
+        "truncated": truncated,
     }
 
 # 写文件
