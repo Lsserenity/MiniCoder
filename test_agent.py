@@ -9,11 +9,8 @@ def main():
     )
 
     answer = agent.run(
-        "Add a delete_todo(todo_id) function to this project. "
-        "It should delete and return the todo with the given id. "
-        "If the id does not exist, it should raise KeyError. "
-        "Add tests for both successful deletion and the missing-id case. "
-        "Run the full test suite and fix any failures before finishing."
+        "Run the test suite, diagnose any failures, fix the underlying bug, "
+        "and rerun the tests until they pass."
     )
 
     print("===== AGENT ANSWER =====")
