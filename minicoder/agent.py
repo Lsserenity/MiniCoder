@@ -1,11 +1,21 @@
 import json
-from pathlib import Path
 from collections.abc import Callable
+from pathlib import Path
 
 from minicoder.llm.openai_client import LLMClient
+from minicoder.planning.plan import PlanState
 from minicoder.tools.definitions import TOOLS
 from minicoder.tools.manager import ToolManager
-from minicoder.planning.plan import PlanState
+from minicoder.ui.terminal import (
+    BOLD,
+    CYAN,
+    DIM,
+    GREEN,
+    RED,
+    format_tool_result,
+    pretty_json,
+    style,
+)
 
 
 SYSTEM_PROMPT = """
@@ -14,6 +24,7 @@ You are MiniCoder, a coding agent working inside a local project workspace.
 Use the available tools to inspect, modify, and verify the project.
 
 Follow these rules:
+
 1. Do not guess file contents or project structure. Inspect relevant files first.
 2. Prefer precise edits over overwriting entire existing files when possible.
 3. If a tool call fails, inspect the error and try a reasonable recovery strategy.
@@ -48,18 +59,21 @@ class Agent:
         confirmation_handler: Callable[
             [str, dict, str],
             bool,
-        ] | None = None,
+        ]
+        | None = None,
     ) -> None:
-        
         self.workspace = workspace.resolve()
         self.llm = LLMClient()
         self.plan_state = PlanState()
+
         self.tool_manager = ToolManager(
             workspace=self.workspace,
             plan_state=self.plan_state,
             confirmation_handler=confirmation_handler,
         )
+
         self.max_steps = max_steps
+
         self.messages = [
             {
                 "role": "system",
@@ -67,7 +81,10 @@ class Agent:
             }
         ]
 
-    def run(self, user_input: str) -> str:
+    def run(
+        self,
+        user_input: str,
+    ) -> str:
         self.messages.append(
             {
                 "role": "user",
@@ -75,69 +92,154 @@ class Agent:
             }
         )
 
-        for step in range(self.max_steps):
-            # 调试信息
+        for step in range(
+            self.max_steps
+        ):
             print(
-                f"[Agent] step {step + 1}",
+                style(
+                    f"[agent] step {step + 1}",
+                    CYAN,
+                    DIM,
+                )
             )
-            # llm的回答
+
             try:
                 message = self.llm.chat(
                     messages=self.messages,
                     tools=TOOLS,
                 )
+
             except Exception as exc:
+                print(
+                    style(
+                        "[error] LLM request failed",
+                        RED,
+                        BOLD,
+                    )
+                )
+
                 return (
-                    "Agent stopped because the LLM request failed. "
-                    "Changes already made to the workspace were not "
-                    "automatically rolled back. "
+                    "Agent stopped because the "
+                    "LLM request failed. "
+                    "Changes already made to the "
+                    "workspace were not automatically "
+                    "rolled back. "
                     f"Error: {exc}"
                 )
 
-            self.messages.append(message)
+            self.messages.append(
+                message
+            )
 
-            # 如果没有工具调用，说明当前对话可以结束，返回模型回答的内容
             if not message.tool_calls:
-                # 调试
                 print(
-                    "[Agent] No tool call. "
-                    "Returning final answer."
+                    style(
+                        "[agent] final response",
+                        CYAN,
+                        DIM,
+                    )
                 )
+
                 return message.content or ""
-            # 否则依次执行工具调用
+
             for tool_call in message.tool_calls:
-                # 调试信息
-                print(
-                    f"[Agent] Calling tool: "
-                    f"{tool_call.function.name}"
+                tool_name = (
+                    tool_call.function.name
                 )
 
+                try:
+                    arguments = json.loads(
+                        tool_call.function.arguments
+                    )
+
+                except json.JSONDecodeError:
+                    arguments = {
+                        "raw":
+                            tool_call.function.arguments
+                    }
+
+                print()
+
                 print(
-                    f"[Agent] Arguments: "
-                    f"{tool_call.function.arguments}"
+                    style(
+                        f"[tool] {tool_name}",
+                        GREEN,
+                        BOLD,
+                    )
                 )
 
-                result = self.tool_manager.execute(
-                    tool_call
+                argument_text = pretty_json(
+                    arguments
                 )
 
-                # 调试
-                print(
-                    f"[Agent] Tool result: {result}"
+                for line in (
+                    argument_text.splitlines()
+                ):
+                    print(
+                        f"       "
+                        f"{style(line, DIM)}"
+                    )
+
+                result = (
+                    self.tool_manager.execute(
+                        tool_call
+                    )
                 )
+
+                success = result.get(
+                    "success",
+                    False,
+                )
+
+                result_status = (
+                    "success"
+                    if success
+                    else "failed"
+                )
+
+                result_color = (
+                    GREEN
+                    if success
+                    else RED
+                )
+
+                result_text = (
+                    format_tool_result(
+                        tool_name,
+                        result,
+                    )
+                )
+
+                print()
+
+                print(
+                    f"{style('[result]', result_color, BOLD)} "
+                    f"{style(result_status, result_color)}"
+                )
+
+                for line in (
+                    result_text.splitlines()
+                ):
+                    print(
+                        f"         {line}"
+                    )
 
                 tool_message = {
                     "role": "tool",
-                    "tool_call_id": tool_call.id,
+                    "tool_call_id":
+                        tool_call.id,
                     "content": json.dumps(
                         result,
                         ensure_ascii=False,
                     ),
                 }
 
-                self.messages.append(tool_message)
+                self.messages.append(
+                    tool_message
+                )
 
         return (
-            "Agent stopped because the maximum "
-            "number of steps was reached."
+            "Agent stopped because the "
+            "maximum number of steps "
+            "was reached."
         )
