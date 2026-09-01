@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from collections.abc import Callable
 
 from minicoder.policy.engine import (
     PolicyAction,
@@ -50,7 +51,20 @@ class ToolManager:
         self,
         workspace: Path,
         plan_state: PlanState | None = None,
+        confirmation_handler: Callable[
+            [str, dict, str],
+            bool,
+        ] | None = None,
     ) -> None:
+        self.workspace = workspace.resolve()
+        self.policy = PolicyEngine()
+        self.confirmation_handler = confirmation_handler
+
+        if plan_state is None:
+            self.plan_state = PlanState()
+        else:
+            self.plan_state = plan_state
+
         self.workspace = workspace.resolve()
         self.policy = PolicyEngine()
 
@@ -126,24 +140,38 @@ class ToolManager:
                 ),
             }
 
-        # 当前版本还没有真正的 CLI confirmation。
-        # 所以遇到 REQUIRE_CONFIRMATION 时先不执行，
-        # 只把结果返回给 Agent。
         if (
             decision.action
             == PolicyAction.REQUIRE_CONFIRMATION
         ):
-            return {
-                "success": False,
-                "error": (
-                    "Tool call requires user "
-                    "confirmation before execution: "
-                    f"{decision.reason}"
-                ),
-                "policy_action": (
-                    decision.action.value
-                ),
-            }
+            if self.confirmation_handler is None:
+                return {
+                    "success": False,
+                    "error": (
+                        "Tool call requires user "
+                        "confirmation before execution: "
+                        f"{decision.reason}"
+                    ),
+                    "policy_action": (
+                        decision.action.value
+                    ),
+                }
+
+            confirmed = self.confirmation_handler(
+                tool_name,
+                arguments,
+                decision.reason,
+            )
+
+            if not confirmed:
+                return {
+                    "success": False,
+                    "error": (
+                        "Tool call was rejected "
+                        "by the user."
+                    ),
+                    "policy_action": "rejected",
+                }
 
         # 真正执行普通工具
         try:

@@ -86,6 +86,44 @@ def print_help() -> None:
     print("  /diff  Show uncommitted workspace changes")
     print("  /exit  Exit MiniCoder")
 
+# 确认交互
+def confirm_tool_call(
+    tool_name: str,
+    arguments: dict,
+    reason: str,
+) -> bool:
+    print()
+    print("Confirmation required")
+    print(
+        f"Tool: {tool_name}"
+    )
+
+    if tool_name == "run_command":
+        command = arguments.get(
+            "command",
+            "",
+        )
+        print(
+            f"Command: {command}"
+        )
+    else:
+        print(
+            f"Arguments: {arguments}"
+        )
+
+    print(
+        f"Reason: {reason}"
+    )
+
+    answer = input(
+        "Allow once? [y/N] "
+    ).strip().lower()
+
+    return answer in {
+        "y",
+        "yes",
+    }
+
 # 主函数
 def main() -> None:
     if len(sys.argv) >= 2:
@@ -112,7 +150,8 @@ def main() -> None:
         return
 
     agent = Agent(
-        workspace=workspace
+        workspace=workspace,
+        confirmation_handler=confirm_tool_call,
     )
 
     print("MiniCoder")

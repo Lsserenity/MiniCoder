@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from collections.abc import Callable
 
 from minicoder.llm.openai_client import LLMClient
 from minicoder.tools.definitions import TOOLS
@@ -44,6 +45,10 @@ class Agent:
         self,
         workspace: Path,
         max_steps: int = 20,
+        confirmation_handler: Callable[
+            [str, dict, str],
+            bool,
+        ] | None = None,
     ) -> None:
         
         self.workspace = workspace.resolve()
@@ -52,6 +57,7 @@ class Agent:
         self.tool_manager = ToolManager(
             workspace=self.workspace,
             plan_state=self.plan_state,
+            confirmation_handler=confirmation_handler,
         )
         self.max_steps = max_steps
         self.messages = [
