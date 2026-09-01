@@ -1,7 +1,10 @@
+import locale
 import subprocess
 from pathlib import Path
 
 
+# 这部分暂时保留，作为 run_command 自身的一层防御。
+# 更上层还有 PolicyEngine。
 BLOCKED_COMMANDS = [
     "rm -rf",
     "del /s",
@@ -10,12 +13,52 @@ BLOCKED_COMMANDS = [
     "reboot",
 ]
 
+
 MAX_OUTPUT_CHARS = 20_000
+
+
+def decode_output(
+    data: bytes | str | None,
+) -> str:
+    if data is None:
+        return ""
+
+    if isinstance(data, str):
+        return data
+
+    try:
+        return data.decode(
+            "utf-8"
+        )
+    except UnicodeDecodeError:
+        system_encoding = (
+            locale.getpreferredencoding(False)
+        )
+
+        try:
+            return data.decode(
+                system_encoding
+            )
+        except UnicodeDecodeError:
+            return data.decode(
+                "utf-8",
+                errors="replace",
+            )
+        
 
 def truncate_output(
     text: str,
     max_chars: int = MAX_OUTPUT_CHARS,
 ) -> tuple[str, bool]:
+    """
+    Limit tool output size to avoid flooding the LLM context.
+
+    When output is too long, preserve both the beginning
+    and the end of the output.
+    """
+    if not text:
+        return "", False
+
     if len(text) <= max_chars:
         return text, False
 
@@ -29,11 +72,16 @@ def truncate_output(
 
     return truncated, True
 
+
 def run_command(
     workspace: Path,
     command: str,
     timeout: int = 30,
 ) -> dict:
+    """
+    在指定的工作目录中执行 shell 命令，并返回结果。
+    """
+
     if command.strip() == "":
         return {
             "success": False,
@@ -60,34 +108,27 @@ def run_command(
     try:
         completed = subprocess.run(
             command,
-            cwd=workspace,      # current working directory
+            cwd=workspace,
             shell=True,
             capture_output=True,
-            text=True,
             timeout=timeout,
         )
+
     except subprocess.TimeoutExpired as exc:
-        raw_stdout = exc.stdout or ""
-        raw_stderr = exc.stderr or ""
+        stdout_text = decode_output(
+            exc.stdout
+        )
 
-        if isinstance(raw_stdout, bytes):
-            raw_stdout = raw_stdout.decode(
-                "utf-8",
-                errors="replace",
-            )
-
-        if isinstance(raw_stderr, bytes):
-            raw_stderr = raw_stderr.decode(
-                "utf-8",
-                errors="replace",
-            )
+        stderr_text = decode_output(
+            exc.stderr
+        )
 
         stdout, stdout_truncated = truncate_output(
-            raw_stdout
+            stdout_text
         )
 
         stderr, stderr_truncated = truncate_output(
-            raw_stderr
+            stderr_text
         )
 
         return {
@@ -107,12 +148,21 @@ def run_command(
             "error": str(exc),
         }
 
-    stdout, stdout_truncated = truncate_output(
+    stdout_text = decode_output(
         completed.stdout
     )
 
-    stderr, stderr_truncated = truncate_output(
+    stderr_text = decode_output(
         completed.stderr
+    )
+
+    # Limit output size
+    stdout, stdout_truncated = truncate_output(
+        stdout_text
+    )
+
+    stderr, stderr_truncated = truncate_output(
+        stderr_text
     )
 
     return {
