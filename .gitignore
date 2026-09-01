@@ -2,7 +2,7 @@
 __pycache__/
 *.py[cod]
 
-# Conda / virtual environments
+# Virtual environments
 .venv/
 venv/
 
@@ -17,5 +17,5 @@ venv/
 .DS_Store
 Thumbs.db
 
-# Test/cache
+# Test / cache
 .pytest_cache/
