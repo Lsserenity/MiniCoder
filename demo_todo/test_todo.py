@@ -1,6 +1,6 @@
 import pytest
 
-from todo import add_todo, get_todos, delete_todo, todos
+from todo import add_todo, get_todos, delete_todo, update_todo, todos
 
 
 def setup_function():
@@ -46,3 +46,48 @@ def test_delete_todo_missing_id():
     # Try to delete a non-existent todo
     with pytest.raises(KeyError, match="Todo with id 999 does not exist"):
         delete_todo(999)
+
+
+def test_update_todo_title():
+    # Add a todo
+    todo = add_todo("Original title")
+    
+    # Update the title
+    updated = update_todo(todo["id"], title="Updated title")
+    
+    # Verify it was updated
+    assert updated["id"] == todo["id"]
+    assert updated["title"] == "Updated title"
+    assert updated["done"] is False
+
+
+def test_update_todo_done():
+    # Add a todo
+    todo = add_todo("Task to complete")
+    
+    # Mark it as done
+    updated = update_todo(todo["id"], done=True)
+    
+    # Verify it was updated
+    assert updated["id"] == todo["id"]
+    assert updated["title"] == "Task to complete"
+    assert updated["done"] is True
+
+
+def test_update_todo_both():
+    # Add a todo
+    todo = add_todo("Original title")
+    
+    # Update both title and done status
+    updated = update_todo(todo["id"], title="New title", done=True)
+    
+    # Verify both were updated
+    assert updated["id"] == todo["id"]
+    assert updated["title"] == "New title"
+    assert updated["done"] is True
+
+
+def test_update_todo_missing_id():
+    # Try to update a non-existent todo
+    with pytest.raises(KeyError, match="Todo with id 999 does not exist"):
+        update_todo(999, title="Some title")
