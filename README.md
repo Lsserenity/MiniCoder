@@ -1,5 +1,7 @@
 ## MiniCoder
 
+https://github.com/Lsserenity/MiniCoder
+
 MiniCoder 是一个基于 Python 3.11 的轻量级本地 Coding Agent。它通过 CLI 与用户交互，调用 OpenAI 兼容接口中的 GLM-4.7-Flash，并使用本地工具完成代码理解、文件修改、命令执行、任务规划和基础安全控制。
 
 ### 运行
