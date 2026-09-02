@@ -65,14 +65,6 @@ class ToolManager:
         else:
             self.plan_state = plan_state
 
-        self.workspace = workspace.resolve()
-        self.policy = PolicyEngine()
-
-        if plan_state is None:
-            self.plan_state = PlanState()
-        else:
-            self.plan_state = plan_state
-
     def execute(
         self,
         tool_call,

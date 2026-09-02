@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from minicoder.tools.filesystem import resolve_workspace_path
+from minicoder.tools.filesystem import is_sensitive_path, resolve_workspace_path
 
 
 DEFAULT_IGNORED_DIRS = {
@@ -66,6 +66,9 @@ def search_text(
             break
 
         if not file_path.is_file():
+            continue
+
+        if is_sensitive_path(file_path):
             continue
 
         relative_parts = file_path.relative_to(

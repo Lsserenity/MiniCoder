@@ -1,36 +1,39 @@
 ## MiniCoder
 
-https://github.com/Lsserenity/MiniCoder.git
+MiniCoder 是一个基于 Python 3.11 的轻量级本地 Coding Agent。它通过 CLI 与用户交互，调用 OpenAI 兼容接口中的 GLM-4.7-Flash，并使用本地工具完成代码理解、文件修改、命令执行、任务规划和基础安全控制。
 
-### 项目情况
-
-MiniCoder 是一个基于 Python 3.11 开发的轻量级本地 Coding Agent，当前使用智谱 GLM-4.7-Flash 作为语言模型，以 CLI 形式提供交互，并支持本地代码理解、修改、命令执行、任务规划与安全控制。
-
-### 运行说明
-
-运行环境：Python 3.11
+### 运行
 
 安装依赖：
-`pip install -r requirements.txt`
 
-配置：
-复制 `.env.example` 为 `.env` 并填写 `MODEL_API_KEY`。当前默认通过智谱开放平台的 OpenAI 兼容接口调用 GLM-4.7-Flash，也可通过 `MODEL_BASE_URL` 和 `MODEL_NAME` 配置其他兼容模型服务。
+```bash
+pip install -r requirements.txt
+```
 
-运行：
-`python -m minicoder <workspace>`
+复制 `.env.example` 为 `.env`，填写 `MODEL_API_KEY`，并按需配置 `MODEL_BASE_URL`、`MODEL_NAME`。
+
+启动：
+
+```bash
+python -m minicoder <workspace>
+```
 
 示例：
-`python -m minicoder demo_todo`
 
-### 主要功能
+```bash
+python -m minicoder demo_todo
+```
 
-1. 多轮 Agent Loop：维护当前 CLI 会话的消息历史，根据模型 Tool Call 自动执行工具并将结果反馈给模型继续推理。
-2. 本地工具：支持文件列表与读取、精确编辑、文件写入、文本搜索和 Shell 命令执行。
-3. 显式任务规划：通过 `update_plan` 维护 pending、in_progress、completed 状态，并支持 `/plan` 查看。
-4. 安全控制：限制文件访问范围；命令支持超时和输出截断；PolicyEngine 将操作划分为允许、拒绝和需用户确认三类。
-5. 交互式 CLI：支持 `/help`、`/plan`、`/diff`、`/exit`，其中 `/diff` 可查看 Git workspace 的未提交修改。
-6. 回归测试：运行 `python -m pytest -v` 可验证主要 Runtime 功能。
+### 功能
 
-### 补充说明
+1. 多轮 Agent Loop：维护当前 CLI 会话上下文，处理模型返回的 tool call，并把工具结果继续反馈给模型。
+2. 本地工具：支持文件列表、读取、写入、精确替换、文本搜索和 Shell 命令执行。
+3. 任务规划：通过 `update_plan` 维护 `pending`、`in_progress`、`completed` 状态，并可用 `/plan` 查看。
+4. CLI 命令：支持 `/help`、`/plan`、`/diff`、`/exit`。
+5. 回归测试：运行 `python -m pytest -v` 验证主要 Runtime 行为。
 
-当前消息历史和计划状态保存在单次 CLI 进程中，暂未实现跨进程 Session Persistence；当前安全机制属于应用层权限控制，未实现操作系统级 Sandbox，后续可进一步扩展。
+### 安全说明
+
+文件工具会限制路径在 workspace 内，并阻止读取、写入或编辑 `.env` 等敏感文件；搜索工具也会跳过敏感文件。Shell 命令从 workspace 启动，支持超时和输出截断，并由 PolicyEngine 对明显危险命令进行拒绝，对安装依赖、联网请求、读取敏感配置和输出重定向等操作要求用户确认。
+
+当前安全机制属于应用层控制，不是操作系统级 Sandbox。Shell 命令仍继承当前用户权限，因此不能视为完全隔离环境。

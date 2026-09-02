@@ -3,20 +3,45 @@ from enum import Enum
 
 DENIED_COMMAND_PATTERNS = (
     "rm -rf",
+    "rm -fr",
+    "rm -r ",
     "del /s",
+    "del /f",
+    "del /q",
+    "erase /s",
     "format ",
+    "rd /s",
+    "rmdir /s",
+    "remove-item -recurse",
+    "remove-item -r",
+    "remove-item -force",
     "shutdown",
     "reboot",
     "git reset --hard",
+    "git clean -fd",
+    "git clean -xdf",
 )
 
 CONFIRMATION_COMMAND_PATTERNS = (
     "pip install",
+    "pip uninstall",
     "python -m pip install",
+    "python -m pip uninstall",
     "conda install",
+    "conda remove",
     "npm install",
+    "npm uninstall",
+    "npm update",
     "apt install",
     "apt-get install",
+    "curl ",
+    "wget ",
+    "invoke-webrequest",
+    "invoke-restmethod",
+    "type .env",
+    "cat .env",
+    "get-content .env",
+    ">",
 )
 
 class PolicyAction(str, Enum):
@@ -112,5 +137,3 @@ class PolicyEngine:
                 "runtime policy."
             ),
         )
-
-    

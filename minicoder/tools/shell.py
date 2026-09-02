@@ -7,10 +7,23 @@ from pathlib import Path
 # 更上层还有 PolicyEngine。
 BLOCKED_COMMANDS = [
     "rm -rf",
+    "rm -fr",
+    "rm -r ",
     "del /s",
+    "del /f",
+    "del /q",
+    "erase /s",
     "format ",
+    "rd /s",
+    "rmdir /s",
+    "remove-item -recurse",
+    "remove-item -r",
+    "remove-item -force",
     "shutdown",
     "reboot",
+    "git reset --hard",
+    "git clean -fd",
+    "git clean -xdf",
 ]
 
 

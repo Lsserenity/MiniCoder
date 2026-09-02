@@ -4,6 +4,16 @@ from pathlib import Path
 
 MAX_READ_LINES = 1000
 
+SENSITIVE_FILE_NAMES = {
+    ".env",
+}
+
+
+def is_sensitive_path(
+    path: Path,
+) -> bool:
+    return path.name.lower() in SENSITIVE_FILE_NAMES
+
 # 解析工作目录下的文件路径，保证不会越界
 def resolve_workspace_path(
     workspace: Path,
@@ -105,6 +115,12 @@ def read_file(
         return {
             "success": False,
             "error": f"Path is not a file: {path}",
+        }
+
+    if is_sensitive_path(target):
+        return {
+            "success": False,
+            "error": f"Access to sensitive file is denied: {path}",
         }
 
     if start_line < 1:
@@ -248,6 +264,12 @@ def write_file(
             "error": f"Path is not a file: {path}",
         }
 
+    if is_sensitive_path(target):
+        return {
+            "success": False,
+            "error": f"Writing sensitive file is denied: {path}",
+        }
+
     try:
         target.parent.mkdir(
             parents=True,
@@ -306,6 +328,12 @@ def edit_file(
         return {
             "success": False,
             "error": f"Path is not a file: {path}",
+        }
+
+    if is_sensitive_path(target):
+        return {
+            "success": False,
+            "error": f"Editing sensitive file is denied: {path}",
         }
 
     try:

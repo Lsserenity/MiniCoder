@@ -34,10 +34,10 @@ class LLMClient:
         """
         调用 OpenAI-compatible Chat Completions API 进行对话。
 
-        :param messages: 当前对话历史。
-        :param tools: 可选工具定义列表。
-        :param max_attempts: 最大尝试次数。
-        :return: assistant message。
+        param messages: 当前对话历史。
+        param tools: 可选工具定义列表。
+        param max_attempts: 最大尝试次数。
+        return: assistant message。
         """
 
         request = {
